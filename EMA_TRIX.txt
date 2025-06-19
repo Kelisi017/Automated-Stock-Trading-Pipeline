@@ -1,0 +1,91 @@
+//@version=5
+strategy("EMA+TRIX+RSI", overlay=false, default_qty_type=strategy.percent_of_equity, default_qty_value=100)
+
+// Input parameters for EMAs
+emaShort = ta.ema(close, 9)
+emaLong = ta.ema(close, 200)
+
+// Custom TRIX settings
+length = input.int(title="TRIX Length", defval=21)
+mult = input.int(title="TRIX Value Multiplier", defval=1)
+signalLength = input.int(title="Signal Smoothing Length", defval=9)
+src = input.source(title="Source", defval=close)
+
+// ADX filter settings
+adxLength = input.int(title="ADX Length", defval=14)
+adxThreshold = input.int(title="ADX Threshold", defval=20)
+
+// Calculate TRIX and Signal
+triple = ta.ema(ta.ema(ta.ema(src, length), length), length)
+trix = mult * ta.roc(triple, 1)
+signal = ta.ema(trix, signalLength)
+
+// ADX Calculation
+deltaHigh = high - high[1]
+deltaLow = low[1] - low
+plusDM = (deltaHigh > deltaLow and deltaHigh > 0) ? deltaHigh : 0
+minusDM = (deltaLow > deltaHigh and deltaLow > 0) ? deltaLow : 0
+tr = ta.rma(ta.tr, adxLength)
+plusDI = ta.rma(plusDM, adxLength) / tr * 100
+minusDI = ta.rma(minusDM, adxLength) / tr * 100
+dx = math.abs(plusDI - minusDI) / (plusDI + minusDI) * 100
+adx = ta.rma(dx, adxLength)
+
+// Reward Loss Ratio
+R_L = input.float(title="Reward Loss Ratio",defval = 1.5)
+
+// Long entry condition 1: EMA 9 above EMA 200, ADX above threshold, TRIX crosses above signal, and TRIX is below zero
+longCondition1 = (emaShort > emaLong) and (adx > adxThreshold) and (ta.crossover(trix, signal))
+
+// Long entry condition 2: EMA 9 crosses above EMA 200
+longCondition2 = ta.crossover(emaShort, emaLong)
+
+// Combined long condition with check for open position
+longCondition = (longCondition1 or longCondition2) and (strategy.position_size == 0)
+
+// Exit condition 1: TRIX line crosses below the signal line (always active for any entry)
+exitCondition1 = ta.crossunder(trix, signal)
+
+// Exit condition 2: EMA 9 crosses below EMA 200
+exitCondition2 = ta.crossunder(emaShort, emaLong)
+
+// Exit condition 3: Price drops 3% below entry price and limit gain
+var float entryPrice = na  // Track the entry price of the current position
+if (strategy.opentrades > 0)
+    entryPrice := strategy.opentrades.entry_price(strategy.opentrades - 1)
+priceStopLoss = entryPrice * 0.97  // Set stop loss level at 3% below the entry price
+//priceLimitGain = entryPrice + (entryPrice - priceStopLoss) * R_L
+
+exitCondition3 = (strategy.position_size > 0 and close <= priceStopLoss)
+
+RSIclose = input(70,"RSI Close Position")
+RSI= ta.rsi(close,RSIclose)
+exitCondition4 = ta.crossover(RSI, 70)
+
+
+// Plotting EMAs on the chart
+plot(emaShort, color=color.blue, linewidth=1, title="EMA 9")
+plot(emaLong, color=color.red, linewidth=1, title="EMA 200")
+
+// Enter Long position when any of the long conditions are met
+if (longCondition)
+    strategy.entry("Long", strategy.long)
+//    alert('{"signal": "buy"}', alert.freq_once_per_bar_close)  // Buy signal alert
+
+// Exit the trade when any exit condition is met
+if (strategy.position_size > 0)
+    if (exitCondition3)  // Price Stop Loss has highest priority
+//       alert('{"signal": "sell", "reason": "price drop below 3% threshold"}', alert.freq_once_per_bar_close)
+        strategy.close("Long", comment="Price Drop")
+
+    if (exitCondition4) // Limit Gain
+        strategy.close("long", comment ="Limit gain")
+
+    if (exitCondition2)  // EMA cross exit
+//        alert('{"signal": "sell", "reason": "ema 9 cross below ema 200"}', alert.freq_once_per_bar_close)
+        strategy.close("Long", comment="EMA Cross")   
+
+    else if (exitCondition1)  // TRIX cross below signal line
+//        alert('{"signal": "sell", "reason": "trix cross below signal"}', alert.freq_once_per_bar_close)
+        strategy.close("Long", comment="TRIX Cross")
+

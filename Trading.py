@@ -9,7 +9,7 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
 # Login to Robinhood
-r.login('l1277435756@gmail.com', '1277435756', store_session=True)
+r.login('', '', store_session=True)
 
 # Define allowed tickers for trading
 ALLOWED_TICKERS = ["NVDA", "TSLA","TEM","AMD","DJT","ASTS"]

@@ -1,34 +1,75 @@
 # Automated-Stock-Trading-Pipeline
-Automated trading pipeline integrating TradingView alerts and Robinhood API, with position sizing based on the Kelly Criterion. 
 
-## How It Works: 
-EMA_TRIX.txt is a version 5 pinescript code that executes trading strategies based on two EMA lines and the TRIX indicator. 
+An automated trading pipeline that integrates TradingView alerts with Robinhood, with position sizing determined by the Kelly Criterion. Designed for automated stock and crypto trading.
 
-TradingView sends webhook alerts triggered by EMA_TRIX pine script strategies. 
+---
 
-A Flask server receives those alerts at a specified /webhook endpoint. 
+## How It Works
 
-The bot extracts signal type (either buy or sell), ticker, and timestamp. 
+1. `EMA_TRIX.txt` contains a Pine Script v5 strategy based on two EMA lines and the TRIX indicator.
+2. TradingView sends alerts via webhook to a local Flask server.
+3. The Flask app listens on the `/webhook` endpoint.
+4. The bot extracts signal type (buy or sell), ticker symbol, and timestamp.
+5. The position size is calculated using the Kelly Criterion.
+6. The bot places fractional buy/sell orders using the Robinhood API via the `robin_stocks` library.
 
-The bot calculates position size based on the Kelly Criterion and executes trades on Robinhood. 
+---
 
 ## Features
-Receives webhook alerts from TradingView.
 
-Supports both stock and crypto trading.
+- Receives webhook alerts from TradingView
+- Supports both stock and crypto trading
+- Implements fixed-risk position sizing with the Kelly Criterion
+- Places fractional orders automatically on Robinhood
+- Logs all actions and errors for debugging and auditing
 
-Uses a risk factor model for fixed position sizing. 
+---
 
-Automatically places fractional buy/sell orders on Robinhood
+## Requirements
 
-Log actions and errors for debugging. 
+- Python 3.7+
+- A valid Robinhood account
+- `robin_stocks` Python library
+- Flask
+- Ngrok (for exposing local server to webhook)
 
-Requirements: 
+---
 
-Python 3.7+
+## Installation
 
-Robinhood Account 
+1. Clone this repository:
 
-Flask Library
+    ```bash
+    git clone https://github.com/yourusername/Automated-Stock-Trading-Pipeline.git
+    cd Automated-Stock-Trading-Pipeline
+    ```
 
-robin_stocks library
+2. Create the conda environment:
+
+    ```bash
+    conda env create -f environment.yml
+    conda activate trading
+    ```
+
+3. (Optional) Run the provided `Start_bot.bat` script to launch the webhook server:
+
+    ```bat
+    rem Launch Flask server and webhook tunnel
+    call C:\Users\YourName\anaconda3\Scripts\activate.bat trading
+    cd /d "F:\Coding"
+    start cmd /k python Trading_With_Crypto.py
+    start cmd /k ngrok http --url=mighty-cobra-rationally.ngrok-free.app 5000
+    ```
+
+---
+
+## Alert Format from TradingView
+
+Use this JSON format in TradingView alerts
+Example:
+
+```json
+{
+  "ticker": "AAPL",
+  "signal": "buy",
+}

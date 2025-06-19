@@ -73,3 +73,22 @@ Example:
   "ticker": "AAPL",
   "signal": "buy",
 }
+```
+---
+
+## Project Structure
+
+| File               | Description                                 |
+|--------------------|---------------------------------------------|
+| Trading_With_Crypto.py | Main trading bot and Flask server         |
+| Trading.py         | Auxiliary trading logic                     |
+| EMA_TRIX.txt       | Pinescript code used in TradingView         |
+| environment.yml    | Environment dependencies for Conda          |
+| Start_bot.bat      | Script to start Flask and webhook tunnel    |
+
+---
+
+## Disclaimer
+
+This project is intended for educational purposes only, and it is not financial advice.
+Trading financial instruments involves risk. Use at your own discretion. 

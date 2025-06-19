@@ -82,7 +82,7 @@ Example:
 |--------------------|---------------------------------------------|
 | Trading_With_Crypto.py | Main trading bot and Flask server         |
 | Trading.py         | Auxiliary trading logic                     |
-| EMA_TRIX.txt       | Pinescript code used in TradingView         |
+| EMA_TRIX.txt       | Pinescript code used in TradingView for trading strategies|
 | environment.yml    | Environment dependencies for Conda          |
 | Start_bot.bat      | Script to start Flask and webhook tunnel    |
 
